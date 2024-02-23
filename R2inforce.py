@@ -1,7 +1,6 @@
 # Full connected의 경우 특정 노드가 전송을 독점하는 듯함.
 # AGECOEFF가 너무 작은가?
 
-
 import os
 from gymnasium import Env
 from gymnasium import spaces
@@ -220,17 +219,11 @@ else:
     device = torch.device("cpu")
 
 # Set parameters
-AGECOEFF = 0.1
-gamma         = 0.98
-buffer_limit  = 50000
+AGECOEFF = 0.5
+gamma = 0.98
+buffer_limit = 50000
 learning_rate = 1e-3
-buffer_len = int(100000)
-min_epi_num = 10 # Start moment to train the Q network
-episodes = 5000
-target_update_period = 10
-eps_start = 0.1
-eps_end = 0.001
-eps_decay = 0.995
+total_episodes = 5000
 tau = 1e-2
 
 # DRQN param
@@ -274,12 +267,10 @@ pi_cum = [Policy(state_space=n_states, action_space=n_actions).to(device) for _ 
 # Set optimizer
 optimizer_cum = [optim.Adam(pi_cum[i].parameters(), lr=learning_rate) for i in range(n_agents)]
 
-epsilon = eps_start
-
 df = pd.DataFrame(columns=['episode', 'time'] + [f'action_{i}' for i in range(n_agents)] + [f'age_{i}' for i in range(n_agents)])
 appended_df = []
 
-for i_epi in tqdm(range(episodes), desc="Episodes", position=0, leave=True):
+for i_epi in tqdm(range(total_episodes), desc="Episodes", position=0, leave=True):
     s, _ = env.reset()
     score = 0.0
     obs_cum = [s[np.array([x, x+n_agents])] for x in range(n_agents)]
@@ -308,7 +299,7 @@ for i_epi in tqdm(range(episodes), desc="Episodes", position=0, leave=True):
     for pi, optimizer in zip(pi_cum, optimizer_cum):
         train(pi, optimizer)
 
-    print(f"n_episode: {i_epi}/{episodes}, score: {score}")
+    print(f"n_episode: {i_epi}/{total_episodes}, score: {score}")
     writer.add_scalar('Rewards per episodes', score, i_epi)
     score = 0
 
