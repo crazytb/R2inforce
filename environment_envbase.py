@@ -170,10 +170,6 @@ class PNDEnv(Env):
 
     def get_current_age(self):
         return self._current_age
-    
-    def set_seed(self, seed):
-        np.random.seed(seed)
-        return self
 
 
 class Policy(nn.Module):
